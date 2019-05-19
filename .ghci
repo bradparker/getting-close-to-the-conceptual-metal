@@ -1,5 +1,5 @@
 :set -XNoImplicitPrelude
 :set -XOverloadedStrings
-:set -isrc
+:set -ilib
 :load HotAir.IO
 :set -interactive-print=print

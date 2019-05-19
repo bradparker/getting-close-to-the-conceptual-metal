@@ -1,4 +1,4 @@
-# Getting close to the conceptual metal
+# Hot Air
 
 Code examples for a blog post about primitive things.
 
@@ -10,4 +10,4 @@ $ nix-shell --run 'cabal new-run'
 
 ... and be disappointed.
 
-Then start reading [`HotAir.IO.putStrLn`](./src/HotAir/IO.hs#L17) ...
+Then start reading [`HotAir.IO.putStrLn`](./lib/HotAir/IO.hs#L17) ...
