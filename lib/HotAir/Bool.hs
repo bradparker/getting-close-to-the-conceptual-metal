@@ -5,6 +5,9 @@ module HotAir.Bool
   ( Bool
   , true
   , false
+  , (||)
+  , (&&)
+  , not
   , ifThenElse
   , fromBuiltin
   ) where
@@ -20,11 +23,17 @@ true = Bool (\t _ -> t)
 false :: Bool
 false = Bool (\_ f -> f)
 
+not :: Bool -> Bool
+not (Bool b) = Bool (\t f -> b f t)
+
+(||) :: Bool -> Bool -> Bool
+Bool a || Bool b = a (Bool a) (Bool b)
+
+(&&) :: Bool -> Bool -> Bool
+Bool a && Bool b = a (Bool b) (Bool a)
+
 ifThenElse :: Bool -> a -> a -> a
 ifThenElse (Bool b) = b
-
-toBuiltin :: Bool -> Builtin.Bool
-toBuiltin b = ifThenElse b Builtin.True Builtin.False
 
 fromBuiltin :: Builtin.Bool -> Bool
 fromBuiltin = Builtin.bool false true

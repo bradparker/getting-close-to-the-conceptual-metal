@@ -21,6 +21,8 @@ nil = List (\n _ -> n)
 cons :: a -> List a -> List a
 cons a as = List (\_ c -> c a as)
 
+infixr 7 `cons`
+
 foldr :: (a -> c -> c) -> c -> List a -> c
 foldr f c (List l) = l c (\a as -> f a (foldr f c as))
 
