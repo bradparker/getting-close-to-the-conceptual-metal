@@ -10,10 +10,12 @@ module HotAir.Bit
   , (.&.)
   , xor
   , toBuiltinNum
+  , fromBuiltinNum
   , halfAdder
   , fullAdder
   ) where
 
+import qualified Data.Eq as Builtin
 import qualified GHC.Num as Builtin
 import HotAir.Bool (Bool, true, false, (&&), (||), ifThenElse)
 import HotAir.Pair (Pair, pair, fst, snd)
@@ -49,3 +51,7 @@ fullAdder a b c =
 
 toBuiltinNum :: Builtin.Num a => Bit -> a
 toBuiltinNum (Bit b) = ifThenElse b 1 0
+
+fromBuiltinNum :: (Builtin.Num a, Builtin.Eq a) => a -> Bit
+fromBuiltinNum 0 = zero
+fromBuiltinNum _ = one
