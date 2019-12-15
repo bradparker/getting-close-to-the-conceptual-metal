@@ -1,16 +1,18 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module HotAir.Eq
-  ( Eq((==), (/=))
-  ) where
+  ( Eq ((==), (/=))
+    )
+where
 
 import qualified Data.Eq as Builtin
 import GHC.Int (Int)
 import GHC.Integer (Integer)
-
-import HotAir.Bool (Bool, fromBuiltin, (||), (&&), not)
+import HotAir.Bool ((&&), Bool, fromBuiltin, not, (||))
 
 class Eq a where
+
   (==) :: a -> a -> Bool
 
   (/=) :: a -> a -> Bool

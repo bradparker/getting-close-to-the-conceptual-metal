@@ -1,21 +1,23 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module HotAir.Bool
-  ( Bool
-  , true
-  , false
-  , (||)
-  , (&&)
-  , not
-  , ifThenElse
-  , fromBuiltin
-  ) where
+  ( Bool,
+    true,
+    false,
+    (||),
+    (&&),
+    not,
+    ifThenElse,
+    fromBuiltin
+    )
+where
 
 import qualified Data.Bool as Builtin
 
-newtype Bool =
-  Bool (forall c. c -> c -> c)
+newtype Bool
+  = Bool (forall c. c -> c -> c)
 
 true :: Bool
 true = Bool (\t _ -> t)

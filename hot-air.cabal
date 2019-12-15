@@ -12,19 +12,15 @@ library
   hs-source-dirs:
       lib
   exposed-modules:
-      HotAir.Bit
       HotAir.Bool
-      HotAir.Byte
       HotAir.Char
       HotAir.Eq
-      HotAir.Function
       HotAir.IO
       HotAir.List
       HotAir.Maybe
       HotAir.Nat
       HotAir.Ord
       HotAir.Pair
-      HotAir.Semigroup
       HotAir.Show
       HotAir.String
   default-language:

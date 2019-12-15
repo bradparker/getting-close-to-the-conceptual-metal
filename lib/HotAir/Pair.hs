@@ -1,15 +1,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module HotAir.Pair
-  ( Pair
-  , pair
-  , fst
-  , snd
-  ) where
+  ( Pair,
+    pair,
+    fst,
+    snd
+    )
+where
 
-newtype Pair a b =
-  Pair (forall c. (a -> b -> c) -> c)
+newtype Pair a b
+  = Pair (forall c. (a -> b -> c) -> c)
 
 pair :: a -> b -> Pair a b
 pair a b = Pair (\p -> p a b)
