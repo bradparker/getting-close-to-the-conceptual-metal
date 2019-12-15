@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
@@ -20,10 +21,10 @@ newtype Maybe a
   = Maybe (forall c. c -> (a -> c) -> c)
 
 nothing :: Maybe a
-nothing = Maybe (\n _ -> n)
+nothing = Maybe \n _ -> n
 
 just :: a -> Maybe a
-just a = Maybe (\_ j -> j a)
+just a = Maybe \_ j -> j a
 
 maybe :: c -> (a -> c) -> Maybe a -> c
 maybe n j (Maybe m) = m n j

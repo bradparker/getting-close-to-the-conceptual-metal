@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -20,13 +21,13 @@ newtype Bool
   = Bool (forall c. c -> c -> c)
 
 true :: Bool
-true = Bool (\t _ -> t)
+true = Bool \t _ -> t
 
 false :: Bool
-false = Bool (\_ f -> f)
+false = Bool \_ f -> f
 
 not :: Bool -> Bool
-not (Bool b) = Bool (\t f -> b f t)
+not (Bool b) = Bool \t f -> b f t
 
 (||) :: Bool -> Bool -> Bool
 Bool a || Bool b = a (Bool a) (Bool b)

@@ -27,16 +27,16 @@ newtype Nat
   = Nat (forall c. c -> (Nat -> c) -> c)
 
 zero :: Nat
-zero = Nat (\z _ -> z)
+zero = Nat \z _ -> z
 
 succ :: Nat -> Nat
-succ n = Nat (\_ s -> s n)
+succ n = Nat \_ s -> s n
 
 nat :: c -> (Nat -> c) -> Nat -> c
 nat z s (Nat n) = n z s
 
 pred :: Nat -> Nat
-pred = nat zero (\n -> n)
+pred = nat zero \n -> n
 
 foldNat :: c -> (c -> c) -> Nat -> c
 foldNat z f = nat z (f . foldNat z f)

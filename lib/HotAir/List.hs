@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
@@ -26,10 +27,10 @@ newtype List a
   = List (forall c. c -> (a -> List a -> c) -> c)
 
 nil :: List a
-nil = List (\n _ -> n)
+nil = List \n _ -> n
 
 cons :: a -> List a -> List a
-cons a as = List (\_ c -> c a as)
+cons a as = List \_ c -> c a as
 
 singleton :: a -> List a
 singleton a = cons a nil
@@ -38,11 +39,11 @@ infixr 7 `cons`
 
 foldr :: (a -> c -> c) -> c -> List a -> c
 foldr f c (List l) =
-  l c (\a as -> f a (foldr f c as))
+  l c \a as -> f a (foldr f c as)
 
 uncons :: List a -> Maybe (Pair a (List a))
 uncons (List l) =
-  l nothing (\a as -> just (pair a as))
+  l nothing \a as -> just (pair a as)
 
 instance Semigroup (List a) where
   a <> b = foldr cons b a
