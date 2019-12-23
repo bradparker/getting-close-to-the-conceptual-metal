@@ -2,6 +2,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module HotAir.List
@@ -10,16 +11,19 @@ module HotAir.List
     nil,
     foldr,
     uncons,
-    singleton
+    singleton,
+    reverse
     )
 where
 
 import Control.Applicative (Applicative ((<*>), pure))
 import Data.Foldable (Foldable)
 import qualified Data.Foldable as Foldable
+import Data.Function (flip)
 import Data.Functor ((<$>), Functor (fmap))
 import Data.Semigroup (Semigroup ((<>)))
 import Data.Traversable (Traversable (traverse))
+import GHC.Exts (IsList (..))
 import HotAir.Maybe (Maybe, just, nothing)
 import HotAir.Pair (Pair, pair)
 
@@ -44,6 +48,19 @@ foldr f c (List l) =
 uncons :: List a -> Maybe (Pair a (List a))
 uncons (List l) =
   l nothing \a as -> just (pair a as)
+
+instance IsList (List a) where
+
+  type Item (List a) = a
+
+  toList :: List a -> [a]
+  toList = Foldable.toList
+
+  fromList :: [a] -> List a
+  fromList = Foldable.foldr cons nil
+
+reverse :: List a -> List a
+reverse = Foldable.foldl (flip cons) nil
 
 instance Semigroup (List a) where
   a <> b = foldr cons b a
