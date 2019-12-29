@@ -5,14 +5,19 @@
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wall #-}
 
+{-# OPTIONS -fplugin=Overloaded -fplugin-opt=Overloaded:Chars #-}
 module HotAir.Byte
   ( Byte,
     byte,
-    debug
+    debug,
+    toChar,
+    fromChar
     )
 where
 
 import Control.Applicative (Applicative ((<*>), pure))
+import Data.Char (Char)
+import qualified Data.Char as Char
 import qualified Data.Eq as Builtin
 import qualified Data.Foldable as Foldable
 import Data.Function (($), (.), id)
@@ -36,6 +41,8 @@ import HotAir.Pair (pair)
 import HotAir.State (evalState, state)
 import HotAir.Vector (Vector, cons, nil)
 import qualified HotAir.Vector as Vector
+import Overloaded.Chars (FromChar)
+import qualified Overloaded.Chars
 import System.IO (IO)
 
 newtype Byte
@@ -158,3 +165,15 @@ instance Eq Byte where
 
 instance Builtin.Eq Byte where
   a == b = Bool.toBuiltin (a == b)
+
+toChar :: Byte -> Char
+toChar = Char.chr . fromIntegral . toWord8
+
+fromChar :: Char -> Byte
+fromChar = fromWord8 . fromIntegral . Char.ord
+
+instance FromChar Byte where
+  fromChar = fromChar
+
+test :: Byte
+test = 'a'

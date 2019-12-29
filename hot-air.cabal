@@ -8,7 +8,8 @@ maintainer: hi@bradparker.com
 library
   build-depends:
       base ^>=4.12.0.0,
-      integer-gmp
+      integer-gmp,
+      overloaded
   hs-source-dirs:
       lib
   exposed-modules:
