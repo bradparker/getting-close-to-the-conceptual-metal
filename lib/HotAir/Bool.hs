@@ -11,7 +11,8 @@ module HotAir.Bool
     (&&),
     not,
     ifThenElse,
-    fromBuiltin
+    fromBuiltin,
+    toBuiltin
     )
 where
 
@@ -40,3 +41,6 @@ ifThenElse (Bool b) = b
 
 fromBuiltin :: Builtin.Bool -> Bool
 fromBuiltin = Builtin.bool false true
+
+toBuiltin :: Bool -> Builtin.Bool
+toBuiltin b = ifThenElse b Builtin.True Builtin.False

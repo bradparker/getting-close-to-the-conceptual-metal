@@ -11,14 +11,16 @@ module HotAir.Bit
     toBuiltinNum,
     fromBuiltinNum,
     halfAdder,
-    fullAdder
+    fullAdder,
+    inv
     )
 where
 
 import qualified Data.Eq as Builtin
 import Data.Foldable (foldr)
 import qualified GHC.Num as Builtin
-import HotAir.Bool ((&&), Bool, false, ifThenElse, true, (||))
+import HotAir.Bool ((&&), Bool, false, ifThenElse, not, true, (||))
+import qualified HotAir.Bool as Bool
 import HotAir.Eq (Eq ((/=), (==)))
 import HotAir.List (List)
 import HotAir.Pair (Pair, fst, pair, snd)
@@ -42,6 +44,9 @@ Bit a .&. Bit b = Bit (a && b)
 xor :: Bit -> Bit -> Bit
 xor (Bit a) (Bit b) = Bit (a /= b)
 
+inv :: Bit -> Bit
+inv (Bit b) = Bit (not b)
+
 halfAdder :: Bit -> Bit -> Pair Bit Bit
 halfAdder a b = pair (a `xor` b) (a .&. b)
 
@@ -57,3 +62,6 @@ toBuiltinNum (Bit b) = ifThenElse b 1 0
 fromBuiltinNum :: (Builtin.Num a, Builtin.Eq a) => a -> Bit
 fromBuiltinNum 0 = zero
 fromBuiltinNum _ = one
+
+instance Builtin.Eq Bit where
+  a == b = Bool.toBuiltin (a == b)

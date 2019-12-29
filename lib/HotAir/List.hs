@@ -1,7 +1,6 @@
-{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -10,44 +9,59 @@ module HotAir.List
     cons,
     nil,
     foldr,
+    unfoldr,
     uncons,
     singleton,
-    reverse
+    reverse,
+    zipWith,
+    take,
+    drop
     )
 where
 
 import Control.Applicative (Applicative ((<*>), pure))
 import Data.Foldable (Foldable)
 import qualified Data.Foldable as Foldable
-import Data.Function (flip)
+import Data.Function (($), (.), const, flip)
 import Data.Functor ((<$>), Functor (fmap))
+import Data.Monoid (Monoid (mempty))
 import Data.Semigroup (Semigroup ((<>)))
 import Data.Traversable (Traversable (traverse))
 import GHC.Exts (IsList (..))
-import HotAir.Maybe (Maybe, just, nothing)
-import HotAir.Pair (Pair, pair)
+import HotAir.Bool (ifThenElse)
+import HotAir.Eq ((==))
+import HotAir.Maybe (Maybe, fromMaybe, just, maybe, nothing)
+import HotAir.Nat (Nat, foldNat, pred, zero)
+import HotAir.Pair (Pair, fst, pair, snd)
 
 newtype List a
   = List (forall c. c -> (a -> List a -> c) -> c)
 
 nil :: List a
-nil = List \n _ -> n
+nil = List $ \n _ -> n
 
 cons :: a -> List a -> List a
-cons a as = List \_ c -> c a as
+cons a as = List $ \_ c -> c a as
+
+infixr 7 `cons`
 
 singleton :: a -> List a
 singleton a = cons a nil
 
-infixr 7 `cons`
-
 foldr :: (a -> c -> c) -> c -> List a -> c
 foldr f c (List l) =
-  l c \a as -> f a (foldr f c as)
+  l c $ \a as -> f a (foldr f c as)
+
+unfoldr :: (a -> Maybe (Pair b a)) -> a -> List b
+unfoldr f a =
+  maybe nil (\ba -> cons (fst ba) (unfoldr f (snd ba))) (f a)
 
 uncons :: List a -> Maybe (Pair a (List a))
 uncons (List l) =
-  l nothing \a as -> just (pair a as)
+  l nothing $ \a as -> just (pair a as)
+
+tail :: List a -> Maybe (List a)
+tail = (snd <$>) . uncons
 
 instance IsList (List a) where
 
@@ -64,6 +78,9 @@ reverse = Foldable.foldl (flip cons) nil
 
 instance Semigroup (List a) where
   a <> b = foldr cons b a
+
+instance Monoid (List a) where
+  mempty = nil
 
 instance Functor List where
   fmap :: (a -> b) -> List a -> List b
@@ -82,3 +99,29 @@ instance Traversable List where
     foldr
       (\a fbs -> cons <$> a2fb a <*> fbs)
       (pure nil)
+
+zipWith :: (a -> b -> c) -> List a -> List b -> List c
+zipWith z =
+  foldr alg (const nil)
+  where
+    alg a f bs =
+      maybe
+        nil
+        (\ht -> z a (fst ht) `cons` f (snd ht))
+        (uncons bs)
+
+take :: Nat -> List a -> List a
+take num as =
+  foldr alg (const nil) as num
+  where
+    alg a f n =
+      if n == zero
+        then nil
+        else a `cons` f (pred n)
+
+drop :: Nat -> List a -> List a
+drop num as =
+  foldNat
+    as
+    (fromMaybe nil . tail)
+    num

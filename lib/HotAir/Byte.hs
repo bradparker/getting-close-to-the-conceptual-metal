@@ -1,5 +1,5 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeApplications #-}
@@ -7,43 +7,39 @@
 
 module HotAir.Byte
   ( Byte,
-    byte
+    byte,
+    debug
     )
 where
 
+import Control.Applicative (Applicative ((<*>), pure))
+import qualified Data.Eq as Builtin
 import qualified Data.Foldable as Foldable
-import Data.Function ((.), id)
+import Data.Function (($), (.), id)
 import Data.Functor ((<$>))
 import Data.Int (Int)
+import Data.Traversable (traverse)
 import Data.Word (Word8)
 import Foreign.Ptr (Ptr, castPtr)
 import Foreign.Storable (Storable (alignment, peek, poke, sizeOf))
-import GHC.Exts (IsList (fromListN))
 import GHC.Integer (Integer)
 import GHC.Num (Num (..))
 import GHC.Real (divMod, fromIntegral)
-import HotAir.Bit (Bit (Bit, toBool), zero)
+import HotAir.Bit (Bit, zero)
 import qualified HotAir.Bit as Bit
-import HotAir.Bool (Bool, false, ifThenElse, not, (||))
-import HotAir.Eq ((==))
+import HotAir.Bool ((&&), ifThenElse, true)
+import qualified HotAir.Bool as Bool
+import HotAir.Eq (Eq ((==)))
+import HotAir.Identity (runIdentity)
 import HotAir.List (List, reverse)
-import HotAir.Pair (fst, snd)
+import HotAir.Pair (pair)
+import HotAir.State (evalState, state)
+import HotAir.Vector (Vector, cons, nil)
+import qualified HotAir.Vector as Vector
 import System.IO (IO)
 
 newtype Byte
-  = Byte
-      ( forall c. ( Bit
-                    -> Bit
-                    -> Bit
-                    -> Bit
-                    -> Bit
-                    -> Bit
-                    -> Bit
-                    -> Bit
-                    -> c
-                    )
-        -> c
-        )
+  = Byte {toVector :: Vector 8 Bit}
 
 byte
   :: Bit
@@ -56,50 +52,44 @@ byte
   -> Bit
   -> Byte
 byte _1 _2 _3 _4 _5 _6 _7 _8 =
-  Byte (\b -> b _1 _2 _3 _4 _5 _6 _7 _8)
+  Byte
+    $ _1
+    `cons` _2
+    `cons` _3
+    `cons` _4
+    `cons` _5
+    `cons` _6
+    `cons` _7
+    `cons` _8
+    `cons` nil
+
+bits :: Applicative f => (Bit -> f Bit) -> Byte -> f Byte
+bits f (Byte b) =
+  Byte <$> traverse f b
 
 toList :: Byte -> List Bit
-toList (Byte b) =
-  b
-    ( \_1 _2 _3 _4 _5 _6 _7 _8 ->
-        [_1, _2, _3, _4, _5, _6, _7, _8]
-      )
+toList = Vector.toList . toVector
+
+debug :: Byte -> [Word8]
+debug = Foldable.foldr ((:) . Bit.toBuiltinNum) [] . toList
 
 toWord8 :: Byte -> Word8
 toWord8 =
   Foldable.foldr
-    ( \bit n ->
-        if Bit.toBool bit
-          then 1 + n + n
-          else n + n
-      )
+    (\bit n -> Bit.toBuiltinNum bit + 2 * n)
     0
     . reverse
     . toList
 
 fromWord8 :: Word8 -> Byte
-fromWord8 n =
-  let (r1, _8) = divMod n 2
-      (r2, _7) = divMod r1 2
-      (r3, _6) = divMod r2 2
-      (r4, _5) = divMod r3 2
-      (r5, _4) = divMod r4 2
-      (r6, _3) = divMod r5 2
-      (r7, _2) = divMod r6 2
-      (_, _1) = divMod r7 2
-   in byte
-        (Bit.fromBuiltinNum _1)
-        (Bit.fromBuiltinNum _2)
-        (Bit.fromBuiltinNum _3)
-        (Bit.fromBuiltinNum _4)
-        (Bit.fromBuiltinNum _5)
-        (Bit.fromBuiltinNum _6)
-        (Bit.fromBuiltinNum _7)
-        (Bit.fromBuiltinNum _8)
-
-isZero :: Byte -> Bool
-isZero =
-  not . Foldable.foldr ((||) . toBool) false . toList
+fromWord8 =
+  Byte
+    . Vector.reverse
+    . Vector.unfoldr
+        ( \n ->
+            let (n', b) = divMod n 2
+             in pair (Bit.fromBuiltinNum b) n'
+          )
 
 instance Storable Byte where
 
@@ -115,83 +105,56 @@ instance Storable Byte where
   poke :: Ptr Byte -> Byte -> IO ()
   poke ptr = poke @Word8 (castPtr ptr) . toWord8
 
-onesComplient :: Byte -> Byte
-onesComplient (Byte b) =
-  b
-    ( \_1 _2 _3 _4 _5 _6 _7 _8 ->
-        byte
-          (Bit (not (toBool _1)))
-          (Bit (not (toBool _2)))
-          (Bit (not (toBool _3)))
-          (Bit (not (toBool _4)))
-          (Bit (not (toBool _5)))
-          (Bit (not (toBool _6)))
-          (Bit (not (toBool _7)))
-          (Bit (not (toBool _8)))
-      )
+onesCompliment :: Byte -> Byte
+onesCompliment =
+  runIdentity . bits (pure . Bit.inv)
 
 shift :: Byte -> Byte
 shift (Byte b) =
-  b
-    ( \_1 _2 _3 _4 _5 _6 _7 _8 ->
-        byte _2 _3 _4 _5 _6 _7 _8 zero
-      )
+  Byte (Vector.drop @1 b `Vector.append` Vector.singleton zero)
 
 null :: Byte
-null = byte zero zero zero zero zero zero zero zero
+null =
+  byte zero zero zero zero zero zero zero zero
 
 instance Num Byte where
 
   (+) :: Byte -> Byte -> Byte
   Byte a + Byte b =
-    a
-      ( \a1 a2 a3 a4 a5 a6 a7 a8 ->
-          b
-            ( \b1 b2 b3 b4 b5 b6 b7 b8 ->
-                let r8 = Bit.halfAdder a8 b8
-                    r7 = Bit.fullAdder a7 b7 (snd r8)
-                    r6 = Bit.fullAdder a6 b6 (snd r7)
-                    r5 = Bit.fullAdder a5 b5 (snd r6)
-                    r4 = Bit.fullAdder a4 b4 (snd r5)
-                    r3 = Bit.fullAdder a3 b3 (snd r4)
-                    r2 = Bit.fullAdder a2 b2 (snd r3)
-                    r1 = Bit.fullAdder a1 b1 (snd r2)
-                 in byte
-                      (fst r1)
-                      (fst r2)
-                      (fst r3)
-                      (fst r4)
-                      (fst r5)
-                      (fst r6)
-                      (fst r7)
-                      (fst r8)
-              )
-        )
+    Byte
+      $ Vector.reverse
+      $ evalState
+          ( traverse state
+              $ Vector.reverse
+              $ Vector.zipWith Bit.fullAdder a b
+            )
+          Bit.zero
 
   (-) :: Byte -> Byte -> Byte
-  a - b = a + onesComplient b + 1
+  a - b = a + onesCompliment b + 1
 
   (*) :: Byte -> Byte -> Byte
-  a * Byte b =
-    b
-      ( \b1 b2 b3 b4 b5 b6 b7 b8 ->
-          Foldable.sum @List
-            [ if Bit.zero == b8 then null else a,
-              if Bit.zero == b7 then null else shift a,
-              if Bit.zero == b6 then null else shift (shift a),
-              if Bit.zero == b5 then null else shift (shift (shift a)),
-              if Bit.zero == b4 then null else shift (shift (shift (shift a))),
-              if Bit.zero == b3 then null else shift (shift (shift (shift (shift a)))),
-              if Bit.zero == b2 then null else shift (shift (shift (shift (shift (shift a))))),
-              if Bit.zero == b1 then null else shift (shift (shift (shift (shift (shift (shift a))))))
-              ]
-        )
+  (*) a =
+    Foldable.sum . evalState (traverse alg (reverse (toList a)))
+    where
+      alg bit =
+        state
+          $ pair
+          <$> ifThenElse (bit == zero) null
+          <*> shift
 
   abs :: Byte -> Byte
   abs = id
 
   signum :: Byte -> Byte
-  signum b = if isZero b then 0 else 1
+  signum b = if b == 0 then 0 else 1
 
   fromInteger :: Integer -> Byte
   fromInteger = fromWord8 . fromIntegral
+
+instance Eq Byte where
+  Byte a == Byte b =
+    Foldable.foldr (&&) true (Vector.zipWith (==) a b)
+
+instance Builtin.Eq Byte where
+  a == b = Bool.toBuiltin (a == b)

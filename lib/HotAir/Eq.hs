@@ -9,6 +9,7 @@ where
 import qualified Data.Eq as Builtin
 import GHC.Int (Int)
 import GHC.Integer (Integer)
+import GHC.Natural (Natural)
 import HotAir.Bool ((&&), Bool, fromBuiltin, not, (||))
 
 class Eq a where
@@ -22,6 +23,9 @@ instance Eq Int where
   a == b = fromBuiltin (a Builtin.== b)
 
 instance Eq Integer where
+  a == b = fromBuiltin (a Builtin.== b)
+
+instance Eq Natural where
   a == b = fromBuiltin (a Builtin.== b)
 
 instance Eq Bool where
