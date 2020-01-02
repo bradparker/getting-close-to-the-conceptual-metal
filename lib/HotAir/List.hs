@@ -15,7 +15,8 @@ module HotAir.List
     reverse,
     zipWith,
     take,
-    drop
+    drop,
+    iterate
     )
 where
 
@@ -125,3 +126,6 @@ drop num as =
     as
     (fromMaybe nil . tail)
     num
+
+iterate :: (a -> a) -> a -> List a
+iterate f a = a `cons` iterate f (f a)

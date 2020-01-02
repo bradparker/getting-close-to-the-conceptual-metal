@@ -7,41 +7,40 @@ module HotAir.String
     toBuiltin,
     toList,
     fromList,
-    singleton
+    singleton,
+    length
     )
 where
 
-import Data.Function ((.))
-import qualified Data.List as Builtin
+import qualified Data.Foldable as Foldable
+import Data.Function ((.), const)
 import Data.Semigroup (Semigroup)
 import qualified Data.String as Builtin
+import GHC.Num (Num ((+)))
 import HotAir.Char (Char)
 import qualified HotAir.Char as Char
-import HotAir.List (List, cons, foldr, nil)
+import HotAir.List (List, cons, nil)
 import qualified HotAir.List as List
-import qualified Text.Show as Builtin
+import HotAir.Nat (Nat)
 
 newtype String
-  = String (List Char)
+  = String {toList :: List Char}
   deriving (Semigroup)
-
-toList :: String -> List Char
-toList (String s) = s
 
 fromList :: List Char -> String
 fromList = String
+
+length :: String -> Nat
+length = List.foldr (const (+ 1)) 0 . toList
 
 singleton :: Char -> String
 singleton = fromList . List.singleton
 
 toBuiltin :: String -> Builtin.String
-toBuiltin (String chars) = foldr ((:) . Char.toBuiltin) [] chars
+toBuiltin (String chars) = List.foldr ((:) . Char.toBuiltin) [] chars
 
 fromBuiltin :: Builtin.String -> String
-fromBuiltin = String . Builtin.foldr (cons . Char.fromBuiltin) nil
+fromBuiltin = String . Foldable.foldr (cons . Char.fromBuiltin) nil
 
 instance Builtin.IsString String where
   fromString = fromBuiltin
-
-instance Builtin.Show String where
-  show = Builtin.show . toBuiltin

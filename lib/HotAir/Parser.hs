@@ -1,4 +1,3 @@
-{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RebindableSyntax #-}
@@ -14,7 +13,7 @@ where
 
 import Control.Applicative (Alternative ((<|>), empty), Applicative ((<*>), pure))
 import Control.Monad (Monad (..))
-import Data.Function ((.))
+import Data.Function (($), (.))
 import Data.Functor ((<$>), Functor (fmap))
 import Data.Traversable (traverse)
 import HotAir.Bool (Bool, ifThenElse)
@@ -33,7 +32,7 @@ newtype Parser a
 instance Functor Parser where
   fmap :: (a -> b) -> Parser a -> Parser b
   fmap f parser =
-    Parser \input ->
+    Parser $ \input ->
       fmap
         (\result -> pair (f (fst result)) (snd result))
         (parse parser input)
@@ -41,11 +40,11 @@ instance Functor Parser where
 instance Applicative Parser where
 
   pure :: a -> Parser a
-  pure a = Parser \input -> just (pair a input)
+  pure a = Parser $ \input -> just (pair a input)
 
   (<*>) :: Parser (a -> b) -> Parser a -> Parser b
   pf <*> pa =
-    Parser \input -> do
+    Parser $ \input -> do
       resF <- parse pf input
       let f = fst resF
           input' = snd resF
@@ -57,16 +56,16 @@ instance Applicative Parser where
 instance Alternative Parser where
 
   empty :: Parser a
-  empty = Parser \_ -> nothing
+  empty = Parser $ \_ -> nothing
 
   (<|>) :: Parser a -> Parser a -> Parser a
   pa <|> pb =
-    Parser \input ->
+    Parser $ \input ->
       maybe (parse pb input) just (parse pa input)
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy pred =
-  Parser \input -> do
+  Parser $ \input -> do
     ht <- uncons (toList input)
     if pred (fst ht)
       then pure (pair (fst ht) (fromList (snd ht)))

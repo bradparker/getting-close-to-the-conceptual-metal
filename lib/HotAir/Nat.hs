@@ -15,8 +15,9 @@ module HotAir.Nat
     )
 where
 
-import Data.Function ((.), ($))
-import GHC.Num (Num(..))
+import Data.Function (($), (.), id)
+import GHC.Integer (Integer)
+import GHC.Num (Num (..))
 import HotAir.Bool (Bool, false, ifThenElse, true)
 import HotAir.Eq (Eq ((==)))
 import HotAir.Maybe (Maybe, just, maybe, nothing)
@@ -57,3 +58,23 @@ instance Eq Nat where
   (==) :: Nat -> Nat -> Bool
   a == b =
     nat (nat true (\_ -> false) a) (pred a ==) b
+
+instance Num Nat where
+
+  (+) :: Nat -> Nat -> Nat
+  (+) a = foldNat a succ
+
+  (*) :: Nat -> Nat -> Nat
+  (*) a = foldNat zero (+ a)
+
+  (-) :: Nat -> Nat -> Nat
+  (-) a = foldNat a pred
+
+  signum :: Nat -> Nat
+  signum n = if n == 0 then 0 else 1
+
+  fromInteger :: Integer -> Nat
+  fromInteger = fromNum
+
+  abs :: Nat -> Nat
+  abs = id

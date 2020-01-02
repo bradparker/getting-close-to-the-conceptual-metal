@@ -1,6 +1,7 @@
 :set -XNoImplicitPrelude
+:set -XOverloadedLists
 :set -XOverloadedStrings
-:set -ilib
+:set -XTypeApplications
 :set -package overloaded
 :set -fplugin Overloaded
 :set -fplugin-opt=Overloaded:Chars
