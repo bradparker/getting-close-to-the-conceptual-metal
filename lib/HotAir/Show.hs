@@ -1,4 +1,3 @@
-{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -8,6 +7,7 @@ module HotAir.Show
     )
 where
 
+import Data.Function (($))
 import Data.Semigroup ((<>))
 import HotAir.Bool (Bool, ifThenElse)
 import HotAir.Char (Char)
@@ -33,4 +33,4 @@ instance (Show a, Show b) => Show (Pair a b) where
   show p = "(pair " <> show (fst p) <> " " <> show (snd p) <> ")"
 
 instance Show a => Show (Maybe a) where
-  show = maybe "nothing" \a -> "(just " <> show a <> ")"
+  show = maybe "nothing" $ \a -> "(just " <> show a <> ")"
