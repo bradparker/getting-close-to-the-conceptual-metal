@@ -16,14 +16,16 @@ module HotAir.List
     zipWith,
     take,
     drop,
-    iterate
+    iterate,
+    concatMap,
+    concat
     )
 where
 
 import Control.Applicative (Applicative ((<*>), pure))
 import Data.Foldable (Foldable)
 import qualified Data.Foldable as Foldable
-import Data.Function (($), (.), const, flip)
+import Data.Function (($), (.), const, flip, id)
 import Data.Functor ((<$>), Functor (fmap))
 import Data.Monoid (Monoid (mempty))
 import Data.Semigroup (Semigroup ((<>)))
@@ -129,3 +131,9 @@ drop num as =
 
 iterate :: (a -> a) -> a -> List a
 iterate f a = a `cons` iterate f (f a)
+
+concatMap :: (a -> List b) -> List a -> List b
+concatMap f = foldr (\a bs -> f a <> bs) nil
+
+concat :: List (List a) -> List a
+concat = concatMap id

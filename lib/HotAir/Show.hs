@@ -7,10 +7,11 @@ module HotAir.Show
     )
 where
 
-import Data.Function (($))
+import Data.Function (($), (.))
 import Data.Semigroup ((<>))
 import HotAir.Bool (Bool, ifThenElse)
 import HotAir.Char (Char)
+import HotAir.List (List, concatMap, cons, drop)
 import HotAir.Maybe (Maybe, maybe)
 import HotAir.Pair (Pair, fst, snd)
 import HotAir.String (String)
@@ -25,6 +26,18 @@ instance Show Char where
 
 instance Show String where
   show a = "\"" <> a <> "\""
+
+instance Show a => Show (List a) where
+  show as =
+    "["
+      <> String.fromList
+           ( drop 1
+               ( concatMap
+                   ((',' `cons`) . String.toList . show)
+                   as
+                 )
+             )
+      <> "]"
 
 instance Show Bool where
   show b = ifThenElse b "true" "false"
