@@ -19,6 +19,7 @@ import Data.Int (Int)
 import HotAir.Eq (Eq)
 import HotAir.Nat (Nat)
 import qualified HotAir.Nat as Nat
+import Overloaded.Chars (FromChar(fromChar))
 import System.IO (IO)
 
 newtype Char
@@ -44,3 +45,6 @@ instance Storable Char where
 
   poke :: Ptr Char -> Char -> IO ()
   poke ptr = poke @Builtin.Char (castPtr ptr) . toBuiltin
+
+instance FromChar Char where
+  fromChar = fromBuiltin
