@@ -4,7 +4,6 @@
 
 module HotAir.String
   ( String,
-    toBuiltin,
     toList,
     fromList,
     singleton,
@@ -35,9 +34,6 @@ length = List.foldr (const (+ 1)) 0 . toList
 
 singleton :: Char -> String
 singleton = fromList . List.singleton
-
-toBuiltin :: String -> Builtin.String
-toBuiltin (String chars) = List.foldr ((:) . Char.toBuiltin) [] chars
 
 fromBuiltin :: Builtin.String -> String
 fromBuiltin = String . Foldable.foldr (cons . Char.fromBuiltin) nil
