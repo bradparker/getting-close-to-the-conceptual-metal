@@ -57,7 +57,19 @@ fromNum =
 instance Eq Nat where
   (==) :: Nat -> Nat -> Bool
   a == b =
-    nat (nat true (\_ -> false) a) (pred a ==) b
+    nat
+      ( nat
+          true
+          (\_ -> false)
+          a
+        )
+      ( \b' ->
+          nat
+            false
+            (\a' -> a' == b')
+            a
+        )
+      b
 
 instance Num Nat where
 
