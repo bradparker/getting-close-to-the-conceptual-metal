@@ -11,7 +11,8 @@ module HotAir.Nat
     pred,
     fromNum,
     toNum,
-    foldNat
+    foldNat,
+    divMod
     )
 where
 
@@ -22,6 +23,7 @@ import HotAir.Bool (Bool, false, ifThenElse, true)
 import HotAir.Eq (Eq ((==)))
 import HotAir.Maybe (Maybe, just, maybe, nothing)
 import HotAir.Ord (Ord ((<=)))
+import HotAir.Pair (Pair, pair)
 
 newtype Nat
   = Nat (forall c. c -> (Nat -> c) -> c)
@@ -90,3 +92,16 @@ instance Num Nat where
 
   abs :: Nat -> Nat
   abs = id
+
+divMod :: Nat -> Nat -> Pair Nat Nat
+divMod n d = go 0 n
+  where
+    go :: Nat -> Nat -> Pair Nat Nat
+    go c n' =
+      let { n'' = n' - d }
+       in if n' == d
+            then pair (c + 1) 0
+            else
+              if n'' == 0
+                then pair c n'
+                else go (c + 1) n''

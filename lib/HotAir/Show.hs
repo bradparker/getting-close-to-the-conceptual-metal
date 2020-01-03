@@ -1,7 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 
+{-# OPTIONS -fplugin=Overloaded -fplugin-opt=Overloaded:Chars #-}
 module HotAir.Show
   ( Show (show)
     )
@@ -9,11 +10,15 @@ where
 
 import Data.Function (($), (.))
 import Data.Semigroup ((<>))
+import Data.String (fromString)
+import GHC.Num (Num (fromInteger))
 import HotAir.Bool (Bool, ifThenElse)
-import HotAir.Char (Char)
-import HotAir.List (List, concatMap, cons, drop)
-import HotAir.Maybe (Maybe, maybe)
-import HotAir.Pair (Pair, fst, snd)
+import HotAir.Char (Char, natToDigit)
+import HotAir.Eq (Eq ((==)))
+import HotAir.List (List, concatMap, cons, drop, reverse, unfoldr)
+import HotAir.Maybe (Maybe, fromMaybe, just, maybe, nothing)
+import HotAir.Nat (Nat, divMod)
+import HotAir.Pair (Pair, fst, pair, snd)
 import HotAir.String (String)
 import qualified HotAir.String as String
 
@@ -47,3 +52,20 @@ instance (Show a, Show b) => Show (Pair a b) where
 
 instance Show a => Show (Maybe a) where
   show = maybe "nothing" $ \a -> "(just " <> show a <> ")"
+
+instance Show Nat where
+  show =
+    String.fromList
+      . reverse
+      . unfoldr
+          ( \n ->
+              let res = divMod n 10
+               in if n == 0
+                    then nothing
+                    else
+                      just
+                        ( pair
+                            (fromMaybe '0' (natToDigit (snd res)))
+                            (fst res)
+                          )
+            )

@@ -12,9 +12,9 @@ module HotAir.Maybe
     )
 where
 
-import Control.Applicative (Applicative ((<*>), pure))
+import Control.Applicative (Alternative ((<|>), empty), Applicative ((<*>), pure))
 import Control.Monad (Monad ((>>=)))
-import Data.Function ((.), id, ($))
+import Data.Function (($), (.), id)
 import Data.Functor ((<$>), Functor (fmap))
 
 newtype Maybe a
@@ -43,6 +43,14 @@ instance Applicative Maybe where
 
   (<*>) :: Maybe (a -> b) -> Maybe a -> Maybe b
   mf <*> ma = maybe nothing (<$> ma) mf
+
+instance Alternative Maybe where
+
+  empty :: Maybe a
+  empty = nothing
+
+  (<|>) :: Maybe a -> Maybe a -> Maybe a
+  a <|> b = maybe b just a
 
 instance Monad Maybe where
   (>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b

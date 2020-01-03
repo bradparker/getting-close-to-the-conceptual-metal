@@ -22,6 +22,7 @@ library
       HotAir.Nat
       HotAir.Ord
       HotAir.Pair
+      HotAir.Parser
       HotAir.Show
       HotAir.String
   default-language:
@@ -32,7 +33,8 @@ executable hot-air
       Main.hs
   build-depends:
       base ^>=4.12.0.0,
-      hot-air
+      hot-air,
+      overloaded
   hs-source-dirs:
       exe
   default-language:

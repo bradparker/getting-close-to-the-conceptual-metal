@@ -1,5 +1,4 @@
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -7,7 +6,9 @@ module HotAir.Parser
   ( Parser (parse),
     string,
     satisfy,
-    char
+    char,
+    execParser,
+    digits
     )
 where
 
@@ -17,9 +18,9 @@ import Data.Function (($), (.))
 import Data.Functor ((<$>), Functor (fmap))
 import Data.Traversable (traverse)
 import HotAir.Bool (Bool, ifThenElse)
-import HotAir.Char (Char)
+import HotAir.Char (Char, isDigit)
 import HotAir.Eq ((==))
-import HotAir.List (uncons)
+import HotAir.List (some, uncons)
 import HotAir.Maybe (Maybe, just, maybe, nothing)
 import HotAir.Pair (Pair, fst, pair, snd)
 import HotAir.String (String, fromList, toList)
@@ -28,6 +29,9 @@ newtype Parser a
   = Parser
       { parse :: String -> Maybe (Pair a String)
         }
+
+execParser :: Parser a -> String -> Maybe a
+execParser p = (fst <$>) . parse p
 
 instance Functor Parser where
   fmap :: (a -> b) -> Parser a -> Parser b
@@ -63,6 +67,13 @@ instance Alternative Parser where
     Parser $ \input ->
       maybe (parse pb input) just (parse pa input)
 
+instance Monad Parser where
+  (>>=) :: Parser a -> (a -> Parser b) -> Parser b
+  p >>= f =
+    Parser $ \input -> do
+      res <- parse p input
+      parse (f (fst res)) (snd res)
+
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy pred =
   Parser $ \input -> do
@@ -76,3 +87,9 @@ char = satisfy . (==)
 
 string :: String -> Parser String
 string = (fromList <$>) . traverse char . toList
+
+digit :: Parser Char
+digit = satisfy isDigit
+
+digits :: Parser String
+digits = fromList <$> some digit

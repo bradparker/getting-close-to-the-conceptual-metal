@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -18,11 +19,13 @@ module HotAir.List
     drop,
     iterate,
     concatMap,
-    concat
+    concat,
+    some,
+    many
     )
 where
 
-import Control.Applicative (Applicative ((<*>), pure))
+import Control.Applicative (Alternative ((<|>)), Applicative ((<*>), pure))
 import Data.Foldable (Foldable)
 import qualified Data.Foldable as Foldable
 import Data.Function (($), (.), const, flip, id)
@@ -137,3 +140,9 @@ concatMap f = foldr (\a bs -> f a <> bs) nil
 
 concat :: List (List a) -> List a
 concat = concatMap id
+
+some :: Alternative f => f a -> f (List a)
+some fa = cons <$> fa <*> many fa
+
+many :: Alternative f => f a -> f (List a)
+many fa = some fa <|> pure nil
