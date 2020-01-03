@@ -8,12 +8,13 @@ module HotAir.Parser
     satisfy,
     char,
     execParser,
-    digits
+    digits,
+    nat
     )
 where
 
 import Control.Applicative (Alternative ((<|>), empty), Applicative ((<*>), pure))
-import Control.Monad (Monad (..))
+import Control.Monad ((=<<), Monad (..))
 import Data.Function (($), (.))
 import Data.Functor ((<$>), Functor (fmap))
 import Data.Traversable (traverse)
@@ -22,6 +23,8 @@ import HotAir.Char (Char, isDigit)
 import HotAir.Eq ((==))
 import HotAir.List (some, uncons)
 import HotAir.Maybe (Maybe, just, maybe, nothing)
+import HotAir.Nat (Nat)
+import HotAir.Nat.Read (readNat)
 import HotAir.Pair (Pair, fst, pair, snd)
 import HotAir.String (String, fromList, toList)
 
@@ -93,3 +96,6 @@ digit = satisfy isDigit
 
 digits :: Parser String
 digits = fromList <$> some digit
+
+nat :: Parser Nat
+nat = maybe empty pure . readNat =<< digits

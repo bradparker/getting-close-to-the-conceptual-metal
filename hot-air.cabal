@@ -20,6 +20,7 @@ library
       HotAir.List
       HotAir.Maybe
       HotAir.Nat
+      HotAir.Nat.Read
       HotAir.Ord
       HotAir.Pair
       HotAir.Parser

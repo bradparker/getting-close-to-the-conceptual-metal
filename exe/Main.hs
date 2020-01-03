@@ -2,53 +2,40 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wall #-}
 
-{-# OPTIONS -fplugin=Overloaded -fplugin-opt=Overloaded:Chars #-}
+{-# OPTIONS -fplugin=Overloaded #-}
+{-# OPTIONS -fplugin-opt=Overloaded:Chars #-}
 module Main
   ( main
     )
 where
 
-import Control.Applicative ((*>), (<*), (<*>), (<|>), empty, pure)
-import Control.Monad ((=<<))
-import Data.Function (($), (.), id)
-import Data.Functor ((<$), (<$>), fmap)
-import Data.Traversable (traverse)
+import Control.Applicative ((*>), (<*), (<*>), (<|>))
+import Data.Function (($), id)
+import Data.Functor ((<$), (<$>))
 import GHC.Num ((*), (+))
-import HotAir.Char (digitToNat)
 import HotAir.IO (IO, print, putStrLn)
-import HotAir.List (foldr, reverse)
-import HotAir.Maybe (Maybe, maybe)
+import HotAir.Maybe (Maybe)
 import HotAir.Nat (Nat)
-import HotAir.Parser (Parser, char, digits, execParser)
+import HotAir.Parser (Parser, char, execParser, nat)
 import HotAir.String (String)
-import qualified HotAir.String as String
-
-apply :: (a -> b -> c) -> a -> b -> c
-apply = id
-
-readNat :: String -> Maybe Nat
-readNat =
-  fmap (foldr (\n acc -> acc * 10 + n) 0 . reverse)
-    . traverse digitToNat
-    . String.toList
 
 eval :: String -> Maybe Nat
-eval =
-  execParser
-    ( apply
-        <$> (char '(' *> parseOp <* char ' ')
-        <*> (parseNat <* char ' ')
-        <*> (parseNat <* char ')')
-      )
+eval = execParser expr
   where
-    parseOp :: Parser (Nat -> Nat -> Nat)
-    parseOp = (+) <$ char '+' <|> (*) <$ char '*'
-    parseNat :: Parser Nat
-    parseNat = maybe empty pure . readNat =<< digits
+    expr :: Parser Nat
+    expr =
+      nat <|> apply
+        <$> (char '(' *> op <* char ' ')
+        <*> (expr <* char ' ')
+        <*> (expr <* char ')')
+    op :: Parser (Nat -> Nat -> Nat)
+    op = (+) <$ char '+' <|> (*) <$ char '*'
+    apply :: (a -> b -> c) -> a -> b -> c
+    apply = id
 
 main :: IO ()
 main = do
   putStrLn "Evaluating (+ 12 11) ..."
   print $ eval "(+ 12 11)"
-  putStrLn "Evaluating (* 12 11) ..."
-  print $ eval "(* 12 11)"
+  putStrLn "Evaluating (* (+ 12 11) 11) ..."
+  print $ eval "(* (+ 12 11) 11)"
