@@ -14,12 +14,8 @@ module HotAir.List
     uncons,
     singleton,
     reverse,
-    zipWith,
-    take,
     drop,
-    iterate,
     concatMap,
-    concat,
     some,
     many
     )
@@ -28,16 +24,14 @@ where
 import Control.Applicative (Alternative ((<|>)), Applicative ((<*>), pure))
 import Data.Foldable (Foldable)
 import qualified Data.Foldable as Foldable
-import Data.Function (($), (.), const, flip, id)
+import Data.Function (($), (.), flip)
 import Data.Functor ((<$>), Functor (fmap))
 import Data.Monoid (Monoid (mempty))
 import Data.Semigroup (Semigroup ((<>)))
 import Data.Traversable (Traversable (traverse))
 import GHC.Exts (IsList (..))
-import HotAir.Bool (ifThenElse)
-import HotAir.Eq ((==))
 import HotAir.Maybe (Maybe, fromMaybe, just, maybe, nothing)
-import HotAir.Nat (Nat, foldNat, pred, zero)
+import HotAir.Nat (Nat, foldNat)
 import HotAir.Pair (Pair, fst, pair, snd)
 
 newtype List a
@@ -106,25 +100,6 @@ instance Traversable List where
       (\a fbs -> cons <$> a2fb a <*> fbs)
       (pure nil)
 
-zipWith :: (a -> b -> c) -> List a -> List b -> List c
-zipWith z =
-  foldr alg (const nil)
-  where
-    alg a f bs =
-      maybe
-        nil
-        (\ht -> z a (fst ht) `cons` f (snd ht))
-        (uncons bs)
-
-take :: Nat -> List a -> List a
-take num as =
-  foldr alg (const nil) as num
-  where
-    alg a f n =
-      if n == zero
-        then nil
-        else a `cons` f (pred n)
-
 drop :: Nat -> List a -> List a
 drop num as =
   foldNat
@@ -132,14 +107,8 @@ drop num as =
     (fromMaybe nil . tail)
     num
 
-iterate :: (a -> a) -> a -> List a
-iterate f a = a `cons` iterate f (f a)
-
 concatMap :: (a -> List b) -> List a -> List b
 concatMap f = foldr (\a bs -> f a <> bs) nil
-
-concat :: List (List a) -> List a
-concat = concatMap id
 
 some :: Alternative f => f a -> f (List a)
 some fa = cons <$> fa <*> many fa

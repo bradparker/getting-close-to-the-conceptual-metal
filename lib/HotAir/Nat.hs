@@ -7,22 +7,22 @@ module HotAir.Nat
   ( Nat,
     zero,
     succ,
-    nat,
-    pred,
-    fromNum,
-    toNum,
+    divMod,
     foldNat,
-    divMod
+    fromIntegral,
+    toNum
     )
 where
 
-import Data.Function (($), (.), id)
+import Data.Function (($), (.), flip, id)
+import Data.Monoid (Monoid (mempty))
+import Data.Semigroup (Semigroup ((<>)), stimesMonoid)
+import GHC.Err (error)
 import GHC.Integer (Integer)
 import GHC.Num (Num (..))
+import GHC.Real (Integral)
 import HotAir.Bool (Bool, false, ifThenElse, true)
 import HotAir.Eq (Eq ((==)))
-import HotAir.Maybe (Maybe, just, maybe, nothing)
-import HotAir.Ord (Ord ((<=)))
 import HotAir.Pair (Pair, pair)
 
 newtype Nat
@@ -46,15 +46,18 @@ foldNat z f = nat z (f . foldNat z f)
 toNum :: Num n => Nat -> n
 toNum = foldNat 0 (+ 1)
 
-unfoldNat :: (c -> Maybe c) -> c -> Nat
-unfoldNat f c = maybe zero (succ . unfoldNat f) (f c)
+newtype Add = Add {getAdd :: Nat}
 
-fromNum :: (Ord n, Num n) => n -> Nat
-fromNum =
-  unfoldNat $ \n ->
-    if n <= 0
-      then nothing
-      else just (n - 1)
+instance Semigroup Add where
+  (<>) :: Add -> Add -> Add
+  Add a <> Add b = Add (a + b)
+
+instance Monoid Add where
+  mempty :: Add
+  mempty = Add zero
+
+fromIntegral :: Integral n => n -> Nat
+fromIntegral = getAdd . flip stimesMonoid (Add (succ zero))
 
 instance Eq Nat where
   (==) :: Nat -> Nat -> Bool
@@ -85,10 +88,13 @@ instance Num Nat where
   (-) a = foldNat a pred
 
   signum :: Nat -> Nat
-  signum n = if n == 0 then 0 else 1
+  signum n = if n == zero then zero else succ zero
+
+  negate :: Nat -> Nat
+  negate = error "There are no negative Naturals"
 
   fromInteger :: Integer -> Nat
-  fromInteger = fromNum
+  fromInteger = fromIntegral
 
   abs :: Nat -> Nat
   abs = id

@@ -4,7 +4,6 @@
 
 module HotAir.Parser
   ( Parser (parse),
-    string,
     satisfy,
     char,
     execParser,
@@ -17,7 +16,6 @@ import Control.Applicative (Alternative ((<|>), empty), Applicative ((<*>), pure
 import Control.Monad ((=<<), Monad (..))
 import Data.Function (($), (.))
 import Data.Functor ((<$>), Functor (fmap))
-import Data.Traversable (traverse)
 import HotAir.Bool (Bool, ifThenElse)
 import HotAir.Char (Char, isDigit)
 import HotAir.Eq ((==))
@@ -87,9 +85,6 @@ satisfy pred =
 
 char :: Char -> Parser Char
 char = satisfy . (==)
-
-string :: String -> Parser String
-string = (fromList <$>) . traverse char . toList
 
 digit :: Parser Char
 digit = satisfy isDigit

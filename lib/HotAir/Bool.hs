@@ -9,13 +9,10 @@ module HotAir.Bool
     (||),
     (&&),
     not,
-    ifThenElse,
-    fromBuiltin,
-    toBuiltin
+    ifThenElse
     )
 where
 
-import qualified Data.Bool as Builtin
 import Data.Function (($))
 
 newtype Bool
@@ -38,9 +35,3 @@ Bool a && Bool b = a (Bool b) (Bool a)
 
 ifThenElse :: Bool -> a -> a -> a
 ifThenElse (Bool b) = b
-
-fromBuiltin :: Builtin.Bool -> Bool
-fromBuiltin = Builtin.bool false true
-
-toBuiltin :: Bool -> Builtin.Bool
-toBuiltin b = ifThenElse b Builtin.True Builtin.False
